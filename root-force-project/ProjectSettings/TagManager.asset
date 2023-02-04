@@ -3,16 +3,20 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - RootHolder
+  - FoodHolder
+  - Food
+  - Root
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Hidden
   - Water
   - UI
-  - 
-  - 
+  - Background
+  - World
   - 
   - 
   - 
@@ -40,4 +44,13 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Hidden
+    uniqueID: 3494838611
+    locked: 0
+  - name: Background
+    uniqueID: 1395609103
+    locked: 0
+  - name: World
+    uniqueID: 2242588231
     locked: 0

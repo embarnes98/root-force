@@ -9,13 +9,16 @@ public class RootScript : MonoBehaviour
     // Declare variables
     private int currentHeadPos_x;
     private int currentHeadPos_y;
-    public int totalRootCellNumber;
+    public int numFoodEaten;
     [SerializeField] public float newRootPeriod;
-    [SerializeField] public float maxNewRootPeriod;
-    [SerializeField] public float damping;
-    [SerializeField] public float boost;
-    [SerializeField] public ScoreGauge scoreGauge;
-    [SerializeField] public Plant plant;
+    [SerializeField] private float minNewRootPeriod;
+    [SerializeField] private float maxNewRootPeriod;
+    [SerializeField] private float damping;
+    [SerializeField] private float boost;
+    [SerializeField] private ScoreGauge scoreGauge;
+    [SerializeField] private Plant plant;
+    [SerializeField] private AudioClip[] audioClips;
+    private AudioSource audioSource;
     private float newRootTime;
     bool gameOver;
     
@@ -34,7 +37,7 @@ public class RootScript : MonoBehaviour
         currentHeadPos_y = _World.height - 1;
         // currentHeadPos_x = currentHeadPos_x;
         // currentHeadPos_y = currentHeadPos_y;
-        totalRootCellNumber = 1;
+        numFoodEaten = 0;
         newRootTime = 0.0f;
         gameOver = false;
         
@@ -44,19 +47,22 @@ public class RootScript : MonoBehaviour
 
         // Spawn a root sprite on the starting location
         SpawnRoot(currentHeadPos_x, currentHeadPos_y);
+
+        audioSource = GetComponent<AudioSource>();
     }
 
     private void FixedUpdate()
     {
+        if (gameOver)
+            return;
+        
+        if (newRootPeriod > maxNewRootPeriod)
+            GameOver();
+        
         // Update time
         newRootTime += Time.deltaTime;
 
-        if (gameOver)
-        {
-            return;
-        }
-
-        scoreGauge.SetAngle(newRootPeriod);
+        scoreGauge.SetAngle(newRootPeriod, 0, maxNewRootPeriod);
         // Check if over threshold
         if (newRootTime >= newRootPeriod)
         {
@@ -64,25 +70,21 @@ public class RootScript : MonoBehaviour
 
             switch(_RootController._headDirection)
             {
-                case RootController.headDirection.up:
+                case RootController.HeadDirection.up:
                     currentHeadPos_y++;
                     break;
-                case RootController.headDirection.down:
+                case RootController.HeadDirection.down:
                     currentHeadPos_y--;
                     break;
-                case RootController.headDirection.left:
+                case RootController.HeadDirection.left:
                     currentHeadPos_x--;
                     break;
-                case RootController.headDirection.right:
+                case RootController.HeadDirection.right:
                     currentHeadPos_x++;
                     break;
             }
             
             SpawnRoot(currentHeadPos_x, currentHeadPos_y);
-            if (totalRootCellNumber % 10 == 0)
-            {
-                plant.Grow();
-            }
             switch(_World.grid[currentHeadPos_x, currentHeadPos_y])
             {
                 case World.Cell.boundary:
@@ -95,18 +97,12 @@ public class RootScript : MonoBehaviour
 
             _World.grid[currentHeadPos_x, currentHeadPos_y] = World.Cell.boundary;
             newRootTime = 0.0f;
-            newRootPeriod *= 1 + damping / 10;
-            // Debug.Log($"New root period: {newRootPeriod}");
-            if (newRootPeriod > maxNewRootPeriod)
-            {
-                GameOver();
-            }
+            newRootPeriod *= 1 + damping;
         }
     }
 
     private void SpawnRoot(int x, int y)
     {
-        
         GameObject rootSprite = new GameObject($"root_{x}_{y}");
         rootSprite.transform.SetParent(_World.rootHolder);
         int rootSpriteIdx = Random.Range(0, _World.rootSprites.Length);
@@ -114,24 +110,32 @@ public class RootScript : MonoBehaviour
         rootSprite.transform.position = new Vector3(x, y);
         // Debug.Log($"Instantiated sprite {rootSprite.name}");
         rootSprite.tag = "Root";
-        totalRootCellNumber++;
     }
 
     private void EatFood(int x, int y)
     {
-        Debug.Log("Yum yum");
         _World.currentNumFood -= 1;
         GameObject[] activeFoodSprites = GameObject.FindGameObjectsWithTag("Food");
-        string foodSpriteName = $"food_{x}_{y}";
         for (int i = 0; i < activeFoodSprites.Length; i++)
         {
-            if (activeFoodSprites[i].name == foodSpriteName)
+            if (activeFoodSprites[i].name.EndsWith($"{x}_{y}"))
             {
+                if (activeFoodSprites[i].name.StartsWith("nutrient"))
+                {
+                    audioSource.clip = audioClips[Random.Range(1, audioClips.Length)];
+                }
+                else if (activeFoodSprites[i].name.StartsWith("water"))
+                {
+                    audioSource.clip = audioClips[0];
+                }
+                audioSource.Play();
                 Destroy(activeFoodSprites[i]);
                 break;
             }
         }
-        newRootPeriod /= boost + 1;
+        newRootPeriod = Mathf.Max(newRootPeriod / (1 + boost), minNewRootPeriod);
+        if (++numFoodEaten % 4 == 0)
+            plant.Grow();
     }
 
     private void GameOver()
@@ -144,6 +148,6 @@ public class RootScript : MonoBehaviour
             // ---------------------------------------------------------------
             newRootTime += Time.deltaTime;
         }
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex - 1);
+        SceneManager.LoadScene(0);
     }
 }

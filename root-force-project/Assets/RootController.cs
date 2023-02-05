@@ -5,61 +5,56 @@ using UnityEngine;
 public class RootController : MonoBehaviour
 {
     // Create the current direction variable
-    public enum headDirection{up, down, left, right}
-    public headDirection _headDirection = headDirection.down;
+    public enum HeadDirection{up, down, left, right};
+    public HeadDirection _headDirection;
+    private float horizontalInput, verticalInput;
 
     // Runs on start
-    private void Start()
+    private void Awake()
     {
         // InvokeRepeating("InputReadout", 0.0f, 0.25f);
+        _headDirection = HeadDirection.down;
     }
 
     // Update is called once per frame
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.W))
+        if (_headDirection == HeadDirection.left || _headDirection == HeadDirection.right)
         {
-            if (_headDirection == headDirection.left || _headDirection == headDirection.right)
-            {
-                _headDirection = headDirection.up;
-            }
-        } 
-        else if (Input.GetKeyDown(KeyCode.S))
+            verticalInput = Input.GetAxis("Vertical");
+            if (verticalInput > 0.01f)
+                _headDirection = HeadDirection.up;
+            else if (verticalInput < -0.01f)
+                _headDirection = HeadDirection.down;
+        }
+        else if (_headDirection == HeadDirection.up || _headDirection == HeadDirection.down)
         {
-            if (_headDirection == headDirection.left || _headDirection == headDirection.right)
+            horizontalInput = Input.GetAxis("Horizontal");
+            if (horizontalInput > 0.01f)
             {
-                _headDirection = headDirection.down;
+                _headDirection = HeadDirection.right;
             }
-        } 
-        else if (Input.GetKeyDown(KeyCode.A))
-        {
-            if (_headDirection == headDirection.up || _headDirection == headDirection.down)
+                
+            else if (horizontalInput < -0.01f)
             {
-                _headDirection = headDirection.left;
-            }
-        } 
-        else if (Input.GetKeyDown(KeyCode.D))
-        {
-            if (_headDirection == headDirection.up || _headDirection == headDirection.down)
-            {
-                _headDirection = headDirection.right;
-            }
+                _headDirection = HeadDirection.left;
+            } 
         }
     }
 
     // Invoked every 1 seconds
     private void InputReadout()
     {
-               if (_headDirection == headDirection.up)
+               if (_headDirection == HeadDirection.up)
         {
             Debug.Log("up");
-        } else if (_headDirection == headDirection.down)
+        } else if (_headDirection == HeadDirection.down)
         {
             Debug.Log("down");
-        } else if (_headDirection == headDirection.left)
+        } else if (_headDirection == HeadDirection.left)
         {
             Debug.Log("left");
-        } else if (_headDirection == headDirection.right)
+        } else if (_headDirection == HeadDirection.right)
         {
             Debug.Log("right");
         }

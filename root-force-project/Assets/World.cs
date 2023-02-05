@@ -82,9 +82,11 @@ public class World : MonoBehaviour
         currentNumFood += 1;
         foodSpawnCounter = 0.0f;
         // Instantiate sprite
-        GameObject foodSprite = new GameObject($"food_{x}_{y}");
-        foodSprite.transform.SetParent(foodHolder);
         int foodSpriteIdx = Random.Range(0, foodSprites.Length);
+        GameObject foodSprite = new GameObject(
+            $"{foodSprites[foodSpriteIdx].name}_{x}_{y}"
+        );
+        foodSprite.transform.SetParent(foodHolder);
         foodSprite.AddComponent<SpriteRenderer>().sprite = foodSprites[foodSpriteIdx];
         foodSprite.transform.position = new Vector3(x, y);
         // Debug.Log($"Instantiated sprite {foodSprite.name}");

@@ -4,8 +4,10 @@ using UnityEngine;
 
 public class ScoreGauge : MonoBehaviour
 {
-    public void SetAngle(float period)
+    public void SetAngle(float currentPeriod, float minPeriod, float maxPeriod)
     {
-        transform.eulerAngles = new Vector3(0, 0, 90 - 6.75f / period);
+        transform.eulerAngles = new Vector3(
+            0, 0, 90 - 180 * Mathf.Lerp(maxPeriod, minPeriod, currentPeriod)
+        );
     }
 }
